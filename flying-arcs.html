@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
+  </head>
+  <body>
+    <script src="bower_components/threejs/build/three.js"></script>
+    <script src="bower_components/d3/d3.min.js"></script>
+    <script src="bower_components/stats.js/build/stats.min.js"></script>
+    <script src="traceur/traceur.js"></script>
+    <script src="traceur/bootstrap.js"></script>
+    <script type="module">
+
+      import { scene, canvas, renderer, camera, stats } from 'modules/scene';
+      import { getCoords, arc } from 'modules/helpers';
+      import { target, distance, update, initEvents } from 'modules/events';
+
+      var world = THREE.ImageUtils.loadTexture('images/world.jpg');
+
+      var earth  = new THREE.MeshPhongMaterial({map: world, shininess: 50});
+      var sphere = new THREE.SphereGeometry(200, 40, 40);
+
+      d3.json('data/data.json', function (err, data) {
+
+        var globe = new THREE.Mesh(sphere, earth)
+        globe.rotation.y = Math.PI;
+        scene.add(globe);
+
+        var lineMaterial = new THREE.LineBasicMaterial({
+          color: '#ff0000', linewidth: 2
+        });
+
+        data.forEach(function (d, i) {
+          var beg = getCoords(d.source_lat, d.source_lng);
+          var end = getCoords(d.dest_lat, d.dest_lng);
+
+          var geometry = arc(beg, end, 10);
+          var mesh = new THREE.Line(geometry, lineMaterial);
+
+          scene.add(mesh)
+        });
+
+        initEvents(canvas);
+
+        function animate() {
+          requestAnimationFrame(animate);
+          render();
+        }
+
+        var origin = new THREE.Vector3();
+        var rotation = {x: 0, y: 0};
+
+        function render() {
+          stats.update();
+
+          rotation.x += (target.x - rotation.x) * 0.1;
+          rotation.y += (target.y - rotation.y) * 0.1;
+
+          update((distance.t - distance.v) * 0.3);
+
+          camera.position.x = distance.v * Math.sin(rotation.x) * Math.cos(rotation.y);
+          camera.position.y = distance.v * Math.sin(rotation.y);
+          camera.position.z = distance.v * Math.cos(rotation.x) * Math.cos(rotation.y);
+          camera.lookAt(origin);
+
+          renderer.render(scene, camera);
+        }
+        animate();
+      });
+    </script>
+  </body>
+</html>
