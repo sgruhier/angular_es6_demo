@@ -23,23 +23,63 @@
 
       d3.json('data/data.json', function (err, data) {
 
+        // ADD THE GLOBE TO THE SCENE
         var globe = new THREE.Mesh(sphere, earth)
         globe.rotation.y = Math.PI;
         scene.add(globe);
 
-        var lineMaterial = new THREE.LineBasicMaterial({
-          color: '#ff0000', linewidth: 2
-        });
+        // CREATE AN ARRAY TO HOLD ACTIVE ARCS (MESHES)
+        var active = [];
 
-        data.forEach(function (d, i) {
-          var beg = getCoords(d.source_lat, d.source_lng);
-          var end = getCoords(d.dest_lat, d.dest_lng);
+        // ADD SOME RED ARCS
+        updateArcs(data.slice(0, 5), 'red');
 
-          var geometry = arc(beg, end, 10);
-          var mesh = new THREE.Line(geometry, lineMaterial);
+        // 3 SECONDS LATER REPLACE THEM WITH BLUES ONES
+        setTimeout(function () {
+          updateArcs(data.slice(5, 10), 'blue', true);
+        }, 3000)
 
-          scene.add(mesh)
-        });
+        // ADD SOME GREEN ONES, KEEP THE BLUE
+        setTimeout(function () {
+          updateArcs(data.slice(10, 15), 'green');
+        }, 6000)
+
+        // ADD SOME RED
+        setTimeout(function () {
+          updateArcs(data.slice(15, 20), 'red');
+        }, 9000)
+
+        // REPLACE ALL WITH YELLOW ARCS
+        setTimeout(function () {
+          updateArcs(data.slice(20, 35), 'yellow', true);
+        }, 12000)
+
+        function updateArcs(items, color, flag) {
+
+          // CREATE MATERIAL USING INPUT COLOR
+          var lineMaterial = new THREE.LineBasicMaterial({
+            color: color, linewidth: 2
+          });
+
+          // REMOVE EXISTING IF FLAG === true
+          if (flag) {
+            for (var i = 0; i < active.length; i++) {
+              scene.remove(active[i]);
+            }
+          }
+
+          // CREATE NEW ARCS. ADD TO SCENE AND ACTIVE ARRAY
+          items.forEach(function (d, i) {
+            var beg = getCoords(d.source_lat, d.source_lng);
+            var end = getCoords(d.dest_lat, d.dest_lng);
+
+            var geometry = arc(beg, end, 10);
+            var mesh = new THREE.Line(geometry, lineMaterial);
+
+            active.push(mesh)
+            scene.add(mesh)
+          });
+        }
 
         initEvents(canvas);
 
