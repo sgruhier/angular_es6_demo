@@ -16,12 +16,12 @@ var origin = new THREE.Vector3(0,0,0);
 export function arc(beg, end, detail){
 
   var distance = beg.distanceTo(end);
-  
+
   var mid = beg.clone().lerp(end, 0.5);
   var midLength = mid.length();
 
   mid.normalize();
-  mid.multiplyScalar(midLength + distance * 0.7);
+  mid.multiplyScalar(midLength + distance * 0.4);
 
   var normal = (new THREE.Vector3()).subVectors(beg, end);
   normal.normalize();

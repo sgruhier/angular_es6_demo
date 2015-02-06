@@ -2,7 +2,7 @@
 export var canvas = d3.select("body").append("canvas")
   .attr("width", window.innerWidth)
   .attr("height", window.innerHeight)
-  .style('background-color', '#EAEAEA');
+  .style('background-color', '#FFFFFF');
 
 canvas.node().getContext("webgl");
 

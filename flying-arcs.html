@@ -16,9 +16,9 @@
       import { getCoords, arc } from 'modules/helpers';
       import { target, distance, update, initEvents } from 'modules/events';
 
-      var world = THREE.ImageUtils.loadTexture('images/world.jpg');
+      var world = THREE.ImageUtils.loadTexture('images/2_no_clouds_4k.jpg');
 
-      var earth  = new THREE.MeshPhongMaterial({map: world, shininess: 50});
+      var earth  = new THREE.MeshPhongMaterial({map: world, shininess: 10});
       var sphere = new THREE.SphereGeometry(200, 40, 40);
 
       d3.json('data/data.json', function (err, data) {
