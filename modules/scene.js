@@ -1,33 +1,119 @@
+import { target, distance, update, initEvents } from './events';
+import { getCoords, arc } from './helpers';
 
-export var canvas = d3.select("body").append("canvas")
-  .attr("width", window.innerWidth)
-  .attr("height", window.innerHeight)
-  .style('background-color', '#FFFFFF');
+export class Scene {
+  constructor(element) {
+    this.element = element;
+    this.animate = this.animate.bind(this);
 
-canvas.node().getContext("webgl");
+    this.origin = new THREE.Vector3();
+    this.rotation = {x: 0, y: 0};
+    this.arcs = []
 
-export var renderer = new THREE.WebGLRenderer({canvas: canvas.node(), antialias: true});
+    this.createRenderer();
+    this.createScene()
 
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+    this.addGlobe();
+    this.animate();
+    window.addEventListener('resize', this.onWindowResize.bind(this), false);
+  }
 
-export var camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 5000);
-camera.position.z = 1000;
+  width() {
+    return this.element.clientWidth;
+  }
 
-export var scene = new THREE.Scene();
+  height() {
+    return this.element.clientHeight;
+  }
 
-export var light = new THREE.HemisphereLight('#ffffff', '#666666', 1.5);
-scene.add(light);
+  createRenderer() {
+    console.log(this.width(), this.height())
+    // Create canvas
+    var canvas = d3.select(this.element).append("canvas")
+      .attr("width", this.width())
+      .attr("height", this.height())
+      .style('background-color', '#FFFFFF')
+    canvas.node().getContext("webgl");
+    initEvents(canvas);
 
-export var stats = new Stats();
-stats.domElement.style.position = 'absolute';
-stats.domElement.style.bottom = '45px';
-document.body.appendChild(stats.domElement);
+    // Create rendered
+    this.renderer = new THREE.WebGLRenderer({canvas: canvas.node(), antialias: true});
+    this.renderer.setSize(this.width(), this.height());
 
-window.addEventListener('resize', onWindowResize, false);
+    this.element.appendChild(this.renderer.domElement);
+  }
 
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize( window.innerWidth, window.innerHeight );
+  createScene() {
+    // Create camera
+    this.camera = new THREE.PerspectiveCamera(70, this.width() / this.height(), 1, 5000);
+    this.camera.position.z = 1000;
+
+    // Create scene
+    this.scene = new THREE.Scene();
+    var light = new THREE.HemisphereLight('#ffffff', '#666666', 1.5);
+    this.scene.add(light);
+  }
+
+  onWindowResize() {
+    this.camera.aspect = this.width() / this.height();
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize( this.width(), this.height() );
+  }
+
+  addGlobe () {
+    var world = THREE.ImageUtils.loadTexture('images/2_no_clouds_4k.jpg');
+
+    var earth  = new THREE.MeshPhongMaterial({map: world, shininess: 10});
+    var sphere = new THREE.SphereGeometry(200, 40, 40);
+
+    var globe = new THREE.Mesh(sphere, earth)
+    globe.rotation.y = Math.PI;
+    this.scene.add(globe);
+  }
+
+  animate() {
+    requestAnimationFrame(this.animate);
+    this.render();
+  }
+
+  render() {
+    this.rotation.x += (target.x - this.rotation.x) * 0.1;
+    this.rotation.y += (target.y - this.rotation.y) * 0.1;
+
+    update((distance.t - distance.v) * 0.3);
+
+    this.camera.position.x = distance.v * Math.sin(this.rotation.x) * Math.cos(this.rotation.y);
+    this.camera.position.y = distance.v * Math.sin(this.rotation.y);
+    this.camera.position.z = distance.v * Math.cos(this.rotation.x) * Math.cos(this.rotation.y);
+    this.camera.lookAt(this.origin);
+
+    this.renderer.render(this.scene, this.camera);
+  }
+
+  setArcs (arcs, color, replace = true) {
+    // CREATE MATERIAL USING INPUT COLOR
+    var lineMaterial = new THREE.LineBasicMaterial({
+      color: color, linewidth: 1
+    });
+
+    // REMOVE EXISTING IF FLAG === true
+    if (replace) {
+      this.arcs.forEach( (arc, i) => {
+        this.scene.remove(arc);
+      })
+      this.arcs = [];
+    }
+
+    // CREATE NEW ARCS. ADD TO SCENE AND ACTIVE ARRAY
+    arcs.forEach( (d, i) => {
+      var beg = getCoords(d.source_lat, d.source_lng);
+      var end = getCoords(d.dest_lat, d.dest_lng);
+
+      var geometry = arc(beg, end, 10);
+      var mesh = new THREE.Line(geometry, lineMaterial);
+
+      this.arcs.push(mesh)
+      this.scene.add(mesh)
+    });
+  }
 }

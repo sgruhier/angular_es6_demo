@@ -3,6 +3,12 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
+    <style type="text/css">
+      body, html {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
   </head>
   <body>
     <script src="bower_components/threejs/build/three.js"></script>
@@ -11,102 +17,31 @@
     <script src="traceur/traceur.js"></script>
     <script src="traceur/bootstrap.js"></script>
     <script type="module">
-
-      import { scene, canvas, renderer, camera, stats } from 'modules/scene';
-      import { getCoords, arc } from 'modules/helpers';
-      import { target, distance, update, initEvents } from 'modules/events';
-
-      var world = THREE.ImageUtils.loadTexture('images/2_no_clouds_4k.jpg');
-
-      var earth  = new THREE.MeshPhongMaterial({map: world, shininess: 10});
-      var sphere = new THREE.SphereGeometry(200, 40, 40);
+      import { Scene } from 'modules/scene';
 
       d3.json('data/data.json', function (err, data) {
-
-        // ADD THE GLOBE TO THE SCENE
-        var globe = new THREE.Mesh(sphere, earth)
-        globe.rotation.y = Math.PI;
-        scene.add(globe);
-
-        // CREATE AN ARRAY TO HOLD ACTIVE ARCS (MESHES)
-        var active = [];
-
-        // ADD SOME RED ARCS
-        updateArcs(data.slice(0, 5), 'red');
+        var scene = new Scene(document.body);
+        scene.setArcs(data.slice(0, 5), 'red');
 
         // 3 SECONDS LATER REPLACE THEM WITH BLUES ONES
         setTimeout(function () {
-          updateArcs(data.slice(5, 10), 'blue', true);
+          scene.setArcs(data.slice(5, 10), 'blue');
         }, 3000)
 
         // ADD SOME GREEN ONES, KEEP THE BLUE
         setTimeout(function () {
-          updateArcs(data.slice(10, 15), 'green');
+          scene.setArcs(data.slice(10, 15), 'green');
         }, 6000)
 
         // ADD SOME RED
         setTimeout(function () {
-          updateArcs(data.slice(15, 20), 'red');
+          scene.setArcs(data.slice(15, 20), 'red');
         }, 9000)
 
         // REPLACE ALL WITH YELLOW ARCS
         setTimeout(function () {
-          updateArcs(data.slice(20, 35), 'yellow', true);
+          scene.setArcs(data.slice(20, 35), 'yellow', true);
         }, 12000)
-
-        function updateArcs(items, color, flag) {
-
-          // CREATE MATERIAL USING INPUT COLOR
-          var lineMaterial = new THREE.LineBasicMaterial({
-            color: color, linewidth: 2
-          });
-
-          // REMOVE EXISTING IF FLAG === true
-          if (flag) {
-            for (var i = 0; i < active.length; i++) {
-              scene.remove(active[i]);
-            }
-          }
-
-          // CREATE NEW ARCS. ADD TO SCENE AND ACTIVE ARRAY
-          items.forEach(function (d, i) {
-            var beg = getCoords(d.source_lat, d.source_lng);
-            var end = getCoords(d.dest_lat, d.dest_lng);
-
-            var geometry = arc(beg, end, 10);
-            var mesh = new THREE.Line(geometry, lineMaterial);
-
-            active.push(mesh)
-            scene.add(mesh)
-          });
-        }
-
-        initEvents(canvas);
-
-        function animate() {
-          requestAnimationFrame(animate);
-          render();
-        }
-
-        var origin = new THREE.Vector3();
-        var rotation = {x: 0, y: 0};
-
-        function render() {
-          stats.update();
-
-          rotation.x += (target.x - rotation.x) * 0.1;
-          rotation.y += (target.y - rotation.y) * 0.1;
-
-          update((distance.t - distance.v) * 0.3);
-
-          camera.position.x = distance.v * Math.sin(rotation.x) * Math.cos(rotation.y);
-          camera.position.y = distance.v * Math.sin(rotation.y);
-          camera.position.z = distance.v * Math.cos(rotation.x) * Math.cos(rotation.y);
-          camera.lookAt(origin);
-
-          renderer.render(scene, camera);
-        }
-        animate();
       });
     </script>
   </body>
