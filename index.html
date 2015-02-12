@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
+    <style type="text/css">
+      body, html {
+        width: 100%;
+        height: 100%;
+      }
+      [globe] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        border: 1px solid #DDD;
+      }
+
+    </style>
+  </head>
+  <body ng-controller="globeController as globeCtrl">
+    <div globe arcs="globeCtrl.arcs"></div>
+    <script src="bower_components/threejs/build/three.js"></script>
+    <script src="bower_components/d3/d3.min.js"></script>
+    <script src="bower_components/angular/angular.js"></script>
+    <script src="traceur/traceur.js"></script>
+    <script src="traceur/bootstrap.js"></script>
+
+    <script type="module" src="app/bootstrap.js"></script>
+  </body>
+</html>
