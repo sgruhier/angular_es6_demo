@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "homepage": "https://github.com/xilinus/flying-arcs",
   "authors": [
-    "shall <hall.steven.g@gmail.com>"
+    "Sébastien Gruhier <sgruhier@gmail.com>"
   ],
   "license": "MIT",
   "private": true,
@@ -17,6 +17,6 @@
   "dependencies": {
     "d3": "~3.5.3",
     "threejs": "*",
-    "stats.js": "*"
+    "angular": "*"
   }
 }
